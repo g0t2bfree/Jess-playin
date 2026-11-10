@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f8e9d2">
+<meta name="description" content="Sunny Strawkins: Patch Patrol — a cozy, touch-friendly scarecrow merging and garden defense game.">
+<title>Sunny Strawkins: Patch Patrol</title>
+<style>
+:root{color-scheme:light;--ink:#493a35;--cream:#fff8e9;--gold:#f5bd58;--pink:#f2a7a2;--green:#65885a;--shadow:0 9px 24px #73513b24}
+*{box-sizing:border-box}html{background:#f7ecd9}body{margin:0;min-height:100dvh;font-family:Trebuchet MS,Arial,sans-serif;color:var(--ink);background:radial-gradient(circle at 20% 0,#fff7e3 0,transparent 40%),linear-gradient(#f9e9d1,#eee0ca);display:flex;justify-content:center;padding:10px 10px 24px;overscroll-behavior-y:contain}
+#app{width:min(100%,480px)}.top{text-align:center;padding:5px 7px 9px}.eyebrow{font-size:11px;letter-spacing:3px;font-weight:900;color:#a57655}.title{font-family:Georgia,serif;font-size:clamp(27px,7vw,40px);font-weight:900;line-height:1.05;color:#6f493c;text-shadow:0 2px #fff6e7}.subtitle{font-size:12px;color:#92715d;margin-top:4px;font-weight:700}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 8px}.stat{background:#fff9ed;border:2px solid #ecd6b5;border-radius:14px;text-align:center;padding:6px 2px 5px;box-shadow:0 3px 0 #ddc5a6}.stat small{font-size:10px;font-weight:900;color:#97765e;display:block;letter-spacing:.6px}.stat b{display:block;font-size:19px;font-variant-numeric:tabular-nums;color:#674c3d}.stat b.warn{color:#c45f59}
+.shell{position:relative;background:#fff5e3;padding:7px;border:3px solid #d9b993;border-radius:20px;box-shadow:var(--shadow);overflow:hidden}canvas{width:100%;display:block;aspect-ratio:420/510;border-radius:13px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer;background:#bfd5b0}
+.toast{position:absolute;top:24px;left:10%;width:80%;text-align:center;pointer-events:none;min-height:20px;font-size:14px;font-weight:900;color:#654638;text-shadow:1px 1px #fff9e9;opacity:0;transition:opacity .15s}.toast.show{opacity:1}.overlay{position:absolute;inset:7px;border-radius:13px;background:#4035299c;display:flex;align-items:center;justify-content:center;padding:18px;z-index:3}.hidden{display:none!important}.modal{background:#fff9ea;border:4px solid #ebca9e;border-radius:24px;box-shadow:0 12px 0 #6b473b33;text-align:center;padding:22px 19px;max-width:350px;width:100%}.modal h2{font:900 30px/1.1 Georgia,serif;color:#8b584a;margin:2px 0 12px}.modal p{font-size:14px;line-height:1.45;margin:9px 0}.modal .mascot{font-size:47px;line-height:1.2}.modal .tip{background:#f8e6c8;border-radius:12px;padding:10px;font-size:13px;margin:12px 0}.primary{display:block;width:100%;background:#f6bf64;border:0;border-bottom:5px solid #c48a40;border-radius:13px;padding:13px 10px;font-weight:900;font-size:17px;color:#523c30;cursor:pointer}.primary:active{transform:translateY(3px);border-bottom-width:2px}.controls{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:7px;margin-top:10px}.control{min-height:62px;padding:7px 4px;background:#fff9ec;border:2px solid #dfc59f;border-bottom-width:4px;border-radius:14px;cursor:pointer;color:#5d483c;font-weight:900;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:13px;touch-action:manipulation}.control span{font-size:22px;line-height:1.1}.control:disabled{opacity:.56;cursor:default}.control:active:not(:disabled){transform:translateY(2px)}.control.active{background:#fff0cc;border-color:#e7af5b}.hint{font-size:12px;text-align:center;font-weight:700;color:#886955;margin:10px 2px;line-height:1.45}.foot{display:flex;justify-content:center;gap:9px;align-items:center;font-size:11px;color:#9b7e65}.foot button{background:transparent;border:0;color:#886955;font-size:11px;text-decoration:underline;cursor:pointer}.instructions{max-width:380px;margin:0 auto 8px;padding:10px 13px;background:#fff6e5;border-radius:14px;border:1px solid #e8ccab;font-size:12px;line-height:1.6}.instructions b{color:#724b3a}
+@media(max-width:360px){body{padding:5px 5px 15px}.top{padding-top:2px}.hud{gap:4px}.stat b{font-size:17px}.shell{padding:4px;border-radius:14px}.controls{gap:4px}.control{font-size:11px}.title{font-size:25px}}
+@media(min-width:700px){body{padding-top:20px}}
+@media(prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<div id="app">
+<header class="top"><div class="eyebrow">A LITTLE SUNSHINE ADVENTURE</div><div class="title">Sunny Strawkins</div><div class="subtitle">✿ PATCH PATROL ✿</div></header>
+<div class="hud" aria-live="polite"><div class="stat"><small>🌾 STRAW</small><b id="straw">75</b></div><div class="stat"><small>🌼 WAVE</small><b id="wave">1 / 5</b></div><div class="stat"><small>❤️ FARM</small><b id="hearts">5</b></div><div class="stat"><small>⭐ SCORE</small><b id="score">0</b></div></div>
+<div class="shell">
+<canvas id="game" width="420" height="510" aria-label="Garden with four planting lanes. Tap a tile to place a scarecrow. Select two matching scarecrows to merge them."></canvas>
+<div class="toast" id="toast" role="status"></div>
+<div class="overlay" id="overlay"><div class="modal"><div class="mascot">🌻🧡🐦</div><h2 id="modalTitle">Save the sunflower patch!</h2><p id="modalBody">Crows are swooping in to steal Sunny's harvest. Plant adorable scarecrows and combine matching ones to make them stronger.</p><div class="tip" id="modalTip"><b>Tap</b> an empty patch to plant (25 straw). <b>Tap</b> two scarecrows of the same level to merge! Use your puppy's bark when the crows swarm.</div><button class="primary" id="start">Let's protect the patch! →</button></div></div>
+</div>
+<div class="controls"><button class="control" id="dog"><span>🐶</span><b id="dogLabel">Pip's Bark</b></button><button class="control" id="pause"><span>⏸️</span><b id="pauseLabel">Pause</b></button><button class="control" id="help"><span>📖</span><b>How to play</b></button></div>
+<p class="hint" id="hint">Tap an empty patch to plant • Tap matching scarecrows to merge • Protect all 4 rows!</p>
+<div class="instructions hidden" id="instructions"><b>🌾 Plant:</b> Tap an empty square for 25 straw. You earn straw as time passes and by defeating crows.<br><b>🌻 Merge:</b> Tap one scarecrow, then another of the same level (or drag one onto another). They become one stronger scarecrow.<br><b>🐶 Pip:</b> Bark to scare and damage crows across the patch. Pip needs time to rest after each bark.<br><b>🏡 Win:</b> Survive all five waves without losing all five farm hearts!</div>
+<footer class="foot">Made with sunshine • Plays offline <button id="sound" aria-label="Toggle sound">🔊 Sound on</button> <span id="best">Best: 0</span></footer>
+</div>
+<script>
+(()=>{'use strict';
+const cv=document.getElementById('game'),ctx=cv.getContext('2d');
+const $=id=>document.getElementById(id),W=420,H=510;
+const board={x:23,y:137,cols:5,rows:4,cw:67.7,ch:74.3};
+const C=['#fff7e2','#f8d7b0','#df9b69','#6f9a66','#6c493a'];
+let scare=[],birds=[],shots=[],particles=[],floating=[],flowers=[],stars=[];
+let straw=75,hearts=5,wave=1,score=0,spawn=0,waveTime=0,rest=0,sunTimer=0,strawTimer=0,elapsed=0,dogCD=0,selected=null;
+let playing=false,paused=false,finished=false,guideOpen=false,soundOn=true,frame=0,last=0,toastTime=0,audio=null,best=0;
+try{best=+(localStorage.getItem('sunny_patch_best')||0)}catch(_){} $('best').textContent='Best: '+best;
+const rand=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const cellCenter=(r,c)=>({x:board.x+c*board.cw+board.cw/2,y:board.y+r*board.ch+board.ch/2});
+const getCell=(x,y)=>{let c=Math.floor((x-board.x)/board.cw),r=Math.floor((y-board.y)/board.ch);return(r>=0&&r<4&&c>=0&&c<5)?{r,c}:null};
+const at=(r,c)=>scare.find(s=>s.r===r&&s.c===c);
+function playTone(freq=470,duration=.07,type='sine'){if(!soundOn)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();let o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.045,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+duration)}catch(_){}}
+function hud(){$('straw').textContent=Math.floor(straw);$('wave').textContent=wave+' / 5';$('hearts').textContent=''+hearts;$('hearts').className=hearts<3?'warn':'';$('score').textContent=score;$('dog').disabled=!playing||paused||dogCD>0;$('dogLabel').textContent=dogCD>0?`Rest ${Math.ceil(dogCD)}s`:"Pip's Bark";$('pauseLabel').textContent=paused?'Resume':'Pause'}
+function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');toastTime=2.2}
+function floatText(x,y,text,color='#73503b'){floating.push({x,y,text,color,t:1.1})}
+function burst(x,y,color,n=9){for(let i=0;i<n;i++)particles.push({x,y,vx:rand(-85,85),vy:rand(-100,20),life:rand(.35,.85),max:.85,size:rand(2,5),color})}
+function reset(){scare=[];birds=[];shots=[];particles=[];floating=[];flowers=[];stars=[];straw=75;hearts=5;wave=1;score=0;spawn=0;waveTime=0;rest=0;sunTimer=0;strawTimer=0;dogCD=0;selected=null;elapsed=0;finished=false;playing=true;paused=false;guideOpen=false;$('instructions').classList.add('hidden');
+for(let i=0;i<32;i++)flowers.push({x:rand(0,420),y:rand(105,490),a:rand(0,7),s:rand(.6,1.5)});
+for(let i=0;i<11;i++)stars.push({x:rand(5,415),y:rand(7,110),a:rand(0,7)});
+// A friendly starter plant in two separate lanes.
+scare.push({r:1,c:1,level:1,cool:rand(0,.4),bop:0});scare.push({r:2,c:1,level:1,cool:rand(0,.4),bop:0});
+$('overlay').classList.add('hidden');toast('Wave 1 — Here come the crows!');hud()}
+function showModal(title,body,tip,btn){$('modalTitle').textContent=title;$('modalBody').textContent=body;$('modalTip').innerHTML=tip;$('start').textContent=btn;$('overlay').classList.remove('hidden')}
+function finish(win){if(finished)return;finished=true;playing=false;paused=false;selected=null;
+if(win){score+=hearts*100+Math.floor(straw);playTone(660,.25);setTimeout(()=>playTone(880,.3),130)}
+if(score>best){best=score;try{localStorage.setItem('sunny_patch_best',''+best)}catch(_){} $('best').textContent='Best: '+best}
+showModal(win?'🌻 The patch is safe!':'🐦 The crows got through!',`You scored ${score} points across ${wave} wave${wave===1?'':'s'}! ${win?'Sunny, Pip, and the sunflowers are cheering for you.':'Sunny believes in you. Try merging your scarecrows sooner and save Pip’s bark for a big flock.'}`,`<b>Best score:</b> ${best} ⭐ &nbsp; <b>Farm hearts:</b> ${hearts} ❤️`,'Play again ↻');hud()}
+function plant(r,c){if(straw<25){toast('Need 25 straw to plant! 🌾');playTone(170,.07);return}straw-=25;const p=cellCenter(r,c);scare.push({r,c,level:1,cool:rand(0,.6),bop:1});burst(p.x,p.y,'#ffe9a0',11);floatText(p.x,p.y-27,'−25 🌾');playTone(580,.085);hud()}
+function merge(src,dst){if(!src||!dst||src===dst)return false;
+if(src.level!==dst.level){toast('Only matching levels can merge!');playTone(210,.07);return false}
+if(dst.level>=4){toast('Sunny is already at max power!');return false}
+const p=cellCenter(dst.r,dst.c);dst.level++;dst.bop=1;dst.cool=Math.min(dst.cool,.3);scare.splice(scare.indexOf(src),1);selected=null;score+=20*dst.level;burst(p.x,p.y,'#ffd16f',22);floatText(p.x,p.y-39,'LEVEL '+dst.level+' ✨','#79552c');playTone(523,.13);setTimeout(()=>playTone(784,.15),70);hud();return true}
+function tap(x,y,sourceCell=null){if(!playing||paused)return;const cell=getCell(x,y);if(!cell){selected=null;return}const item=at(cell.r,cell.c);
+if(sourceCell && (sourceCell.r!==cell.r||sourceCell.c!==cell.c)) {const from=at(sourceCell.r,sourceCell.c);if(from&&item){if(merge(from,item))return}if(from&&!item){from.r=cell.r;from.c=cell.c;from.bop=1;selected=null;playTone(420,.09);return}}
+if(!item){if(selected){selected=null}plant(cell.r,cell.c);return}
+if(selected){if(selected===item){selected=null;hud();return}if(merge(selected,item))return}
+selected=item;const p=cellCenter(item.r,item.c);floatText(p.x,p.y-39,'LEVEL '+item.level,'#79552c');playTone(420,.045)}
+let pointerStart=null;
+function pointerCoords(e){let b=cv.getBoundingClientRect();return{x:(e.clientX-b.left)*W/b.width,y:(e.clientY-b.top)*H/b.height}}
+cv.addEventListener('pointerdown',e=>{if(e.button!==0)return;cv.setPointerCapture(e.pointerId);pointerStart=pointerCoords(e)});
+cv.addEventListener('pointerup',e=>{if(!pointerStart)return;let p=pointerCoords(e),first=getCell(pointerStart.x,pointerStart.y);pointerStart=null;tap(p.x,p.y,first)});
+cv.addEventListener('pointercancel',()=>pointerStart=null);
+$('start').addEventListener('click',()=>{if(!playing||finished)reset();else{$('overlay').classList.add('hidden');paused=false;hud()} });
+$('pause').addEventListener('click',()=>{if(!playing||finished)return;paused=!paused;if(paused)showModal('A little sunshine break','Sunny and the scarecrows will keep watch right where you left them.','Your farm is safely paused.','Back to the patch →');else $('overlay').classList.add('hidden');hud()});
+$('help').addEventListener('click',()=>{guideOpen=!guideOpen;$('instructions').classList.toggle('hidden',!guideOpen)});
+$('dog').addEventListener('click',()=>{if(!playing||paused||dogCD>0)return;dogCD=18;let hit=0;for(let b of birds){b.hp-=b.maxhp*.68+1.5;b.wobble=1;hit++}burst(209,100,'#fff7ba',27);floatText(210,94,'WOOF! 🐾','#764a40');toast(hit?'Pip scares the flock! 🐶':'Pip is on guard! 🐶');playTone(200,.25,'triangle');hud()});
+$('sound').addEventListener('click',()=>{soundOn=!soundOn;$('sound').textContent=soundOn?'🔊 Sound on':'🔇 Sound off';if(soundOn)playTone()});
+function enemiesToSpawn(){return 5+wave*3}
+function spawnBird(){const row=Math.floor(rand(0,4));let type='crow';if(wave>=3 && Math.random()<.22)type='raven';if(wave>=4&&Math.random()<.18)type='swift';let hp=type==='raven'?13+wave*3:type==='swift'?6+wave:7+wave*2;birds.push({r:row,x:440+rand(0,34),y:cellCenter(row,4).y+rand(-12,11),hp,maxhp:hp,speed:type==='swift'?28+wave*2:type==='raven'?12+wave:16+wave*1.7,type,wobble:0,wing:rand(0,6)})}
+function update(dt){elapsed+=dt;frame+=dt;strawTimer+=dt;sunTimer+=dt;waveTime+=dt;
+if(toastTime>0){toastTime-=dt;if(toastTime<=0)$('toast').classList.remove('show')}
+if(dogCD>0)dogCD=Math.max(0,dogCD-dt);
+if(strawTimer>=2.4){strawTimer-=2.4;straw=Math.min(999,straw+9);if(straw>=25 && Math.floor(elapsed)%5===0)floatText(385,121,'+9 🌾','#817339')}
+if(rest>0){rest-=dt;if(rest<=0){wave++;waveTime=0;spawn=0;toast('Wave '+wave+' — Here they come!');playTone(580,.18)}}
+else if(spawn<enemiesToSpawn()){let gap=Math.max(.76,2.55-wave*.2);if(waveTime>(spawn+1)*gap){spawnBird();spawn++}}
+else if(birds.length===0){if(wave>=5){finish(true);return}else{rest=3.3;straw=Math.min(999,straw+35);floatText(215,105,'WAVE CLEARED! +35 🌾','#8d6138');toast('Excellent! A little breather 🌻');playTone(690,.15)}}
+for(let s of scare){s.cool-=dt;s.bop=Math.max(0,s.bop-dt*2);
+let inLane=birds.filter(b=>b.r===s.r&&b.x>cellCenter(s.r,s.c).x-10).sort((a,b)=>a.x-b.x);
+let target=inLane[0];if(target&&s.cool<=0){const p=cellCenter(s.r,s.c);shots.push({x:p.x+17,y:p.y-9,tx:target.x,ty:target.y,r:s.r,target,damage:[0,3,6,11,19][s.level],speed:280+28*s.level,level:s.level});s.cool=[0,1.13,.77,.55,.39][s.level];s.bop=.35;playTone(350+s.level*70,.035,'triangle')}}
+for(let i=shots.length-1;i>=0;i--){let o=shots[i];if(!birds.includes(o.target)){shots.splice(i,1);continue}const dx=o.target.x-o.x,dy=o.target.y-o.y,dist=Math.hypot(dx,dy),step=o.speed*dt;
+if(dist<=step+9){o.target.hp-=o.damage;o.target.wobble=.4;burst(o.target.x,o.target.y,'#ffe29b',4);shots.splice(i,1)}else{o.x+=dx/dist*step;o.y+=dy/dist*step}}
+for(let i=birds.length-1;i>=0;i--){let b=birds[i];b.wing+=dt*12;b.wobble=Math.max(0,b.wobble-dt);if(b.hp<=0){let bonus=b.type==='raven'?16:10;straw=Math.min(999,straw+bonus);score+=b.type==='raven'?40:25;burst(b.x,b.y,'#f4dc99',11);floatText(b.x,b.y-16,'+'+bonus+' 🌾');birds.splice(i,1);playTone(620,.08);continue}b.x-=b.speed*dt;if(b.x<5){hearts--;burst(23,b.y,'#ed9781',17);birds.splice(i,1);floatText(40,b.y,'−1 ❤️','#ab5347');playTone(165,.25,'sawtooth');if(hearts<=0){hearts=0;finish(false);return}}}
+for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.life-=dt;if(p.life<=0){particles.splice(i,1);continue}p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=140*dt}
+for(let i=floating.length-1;i>=0;i--){floating[i].t-=dt;floating[i].y-=24*dt;if(floating[i].t<=0)floating.splice(i,1)}
+hud()}
+function rr(x,y,w,h,r,col){ctx.fillStyle=col;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
+function ellipse(x,y,rx,ry,color){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),0,0,Math.PI*2);ctx.fill()}
+function line(x1,y1,x2,y2,color,width=2){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke()}
+function flower(x,y,s=1,t=0){ctx.save();ctx.translate(x,y);ctx.scale(s,s);line(0,4,0,12,'#7d9657',1.7);ctx.rotate(t);for(let i=0;i<5;i++){ellipse(Math.cos(i*Math.PI*2/5)*5,Math.sin(i*Math.PI*2/5)*5,3.8,3.8,'#fff3de')}ellipse(0,0,3.4,3.4,'#eab866');ctx.restore()}
+function cloud(x,y,s){ellipse(x,y,21*s,9*s,'#fff8e7a9');ellipse(x-10*s,y-6*s,13*s,11*s,'#fff8e7c9');ellipse(x+10*s,y-5*s,15*s,12*s,'#fff8e7b4')}
+function bg(){let g=ctx.createLinearGradient(0,0,0,510);g.addColorStop(0,'#b7d7ce');g.addColorStop(.28,'#f1dfb8');g.addColorStop(1,'#91b27b');ctx.fillStyle=g;ctx.fillRect(0,0,420,510);
+// Big warm sun and low clouds.
+ellipse(356,53,34,34,'#fff3a9');ellipse(356,53,25,25,'#ffdf7e');cloud(84+Math.sin(frame*.17)*11,49,1.1);cloud(218-Math.sin(frame*.1)*11,77,.75);
+ctx.fillStyle='#adc393';ctx.beginPath();ctx.moveTo(0,129);ctx.bezierCurveTo(65,80,118,133,205,110);ctx.bezierCurveTo(274,88,362,90,420,122);ctx.lineTo(420,190);ctx.lineTo(0,190);ctx.fill();
+ctx.fillStyle='#96b37f';ctx.beginPath();ctx.moveTo(0,154);ctx.bezierCurveTo(75,131,99,161,189,136);ctx.bezierCurveTo(277,124,345,151,420,134);ctx.lineTo(420,510);ctx.lineTo(0,510);ctx.fill();
+// A tiny farmhouse and picket details by the left horizon.
+rr(9,87,57,45,4,'#f7e8cb');ctx.fillStyle='#a86d56';ctx.beginPath();ctx.moveTo(2,93);ctx.lineTo(37,70);ctx.lineTo(73,93);ctx.closePath();ctx.fill();rr(34,108,14,24,2,'#936b52');rr(15,100,13,13,2,'#a4c6bd');
+for(let i=0;i<9;i++){let x=i*49-3;line(x,128,x,145,'#eadac0',5);line(x-5,134,x+18,134,'#eadac0',3)}
+// Rounded garden beds and subtle tilled rows.
+rr(14,128,388,314,18,'#ac8a5e');rr(18,132,380,306,17,'#92a875');
+for(let r=0;r<4;r++)for(let c=0;c<5;c++){let x=board.x+c*board.cw,y=board.y+r*board.ch;rr(x+2,y+3,board.cw-5,board.ch-5,13,(r+c)%2?'#bcd09a':'#c6dba7');rr(x+7,y+8,board.cw-15,board.ch-17,11,(r+c)%2?'#abc38d':'#b1ca91');
+ctx.globalAlpha=.24;for(let j=0;j<3;j++)ellipse(x+15+j*13,y+60+Math.sin(j+r)*2,7,2,'#759263');ctx.globalAlpha=1}
+for(let f of flowers){if(f.y>136&&f.y<437)continue;flower(f.x,f.y,f.s*.8,f.a)}
+// Decorative pumpkins in the foreground.
+for(let x of [55,107,317,370]){let y=469+(x%3)*2;ellipse(x,y+8,16,5,'#688d65');ellipse(x-7,y,10,13,'#dd9158');ellipse(x+7,y,10,13,'#df985d');ellipse(x,y,11,15,'#eeab68');line(x,y-13,x+3,y-18,'#5d7954',3)}
+for(let i=0;i<8;i++)flower(12+i*56,496,randSeed(i)*.55+.4,i);
+// Field sign.
+rr(142,459,142,34,11,'#fff0d1');rr(145,463,136,25,9,'#b77b59');ctx.textAlign='center';ctx.font='bold 13px Trebuchet MS';ctx.fillStyle='#fff3d3';ctx.fillText('SUNNY’S FARM',213,480);
+}
+function randSeed(i){return((i*91+17)%73)/73}
+function face(x,y,scale=1){ellipse(x-8*scale,y-1*scale,2.5*scale,3*scale,'#493d35');ellipse(x+8*scale,y-1*scale,2.5*scale,3*scale,'#493d35');ellipse(x-14*scale,y+6*scale,5*scale,3*scale,'#ee9e96');ellipse(x+14*scale,y+6*scale,5*scale,3*scale,'#ee9e96');ctx.strokeStyle='#865349';ctx.lineWidth=1.5*scale;ctx.beginPath();ctx.arc(x,y+4*scale,5*scale,0,Math.PI);ctx.stroke()}
+function scarecrow(s){const p=cellCenter(s.r,s.c),x=p.x,y=p.y+7;
+ctx.save();ctx.translate(x,y);let sc=1+Math.min(s.level-1,3)*.09+s.bop*.06;ctx.scale(sc,sc);
+// Soft cast shadow.
+ellipse(0,26,22,6,'#4d713c37');line(0,-10,0,29,'#936747',5);
+ctx.save();ctx.rotate(Math.sin(frame*2+s.r+s.c)*.04);
+// Twig arms + fluffy straw hands.
+line(-8,-6,-27,2,'#946746',4);line(8,-6,27,2,'#946746',4);ellipse(-28,3,5,4,'#f5c26d');ellipse(28,3,5,4,'#f5c26d');
+// Overalls and little scarf.
+rr(-17,-10,34,28,9,['','#d89576','#8aa5a0','#c9a0b6','#e7bb73'][s.level]);rr(-12,2,24,15,5,['','#8fb2a3','#d8a072','#a98fb8','#e4a563'][s.level]);
+line(-12,-8,12,12,'#e6d1a6',2);line(12,-8,-12,12,'#e6d1a6',2);
+ellipse(0,-19,20,19,'#edbf80');ellipse(0,-18,17,16,'#f3d094');face(0,-17,1);
+// Famous floppy straw hat.
+ctx.fillStyle=s.level>=3?'#bf7e5e':'#a5785a';ctx.beginPath();ctx.moveTo(-20,-33);ctx.lineTo(-15,-51);ctx.lineTo(17,-50);ctx.lineTo(21,-33);ctx.closePath();ctx.fill();rr(-27,-36,54,9,5,s.level>=3?'#b97e65':'#b08560');rr(-19,-39,38,4,2,s.level>=3?'#efcb79':'#b3c28b');
+if(s.level>=2){ellipse(16,-38,6,6,'#f3d277');ellipse(16,-38,2,2,'#b27656')}
+if(s.level>=4){for(let a=0;a<5;a++){let ang=frame*1.4+a*Math.PI*2/5;ellipse(Math.cos(ang)*30,-19+Math.sin(ang)*31,2.4,2.4,'#fff1ae')}}
+ctx.restore();ctx.restore();
+ctx.save();ctx.textAlign='center';rr(x-12,p.y+27,24,17,8,'#fff4db');ctx.font='bold 12px Trebuchet MS';ctx.fillStyle='#725544';ctx.fillText(''+s.level,x,p.y+39);ctx.restore();
+if(selected===s){ctx.save();ctx.strokeStyle='#ffef8f';ctx.lineWidth=4;ctx.setLineDash([5,5]);ctx.beginPath();ctx.ellipse(p.x,p.y+5,31,34,0,0,Math.PI*2);ctx.stroke();ctx.restore()}}
+function bird(b){let x=b.x,y=b.y+Math.sin(b.wing)*2;ctx.save();ctx.translate(x,y);let sc=b.type==='raven'?1.28:b.type==='swift'?.82:1;ctx.scale(sc,sc);if(b.wobble>0)ctx.rotate(Math.sin(frame*55)*.18);
+// Tail feathers, wing flaps, little feet.
+ctx.fillStyle=b.type==='raven'?'#51475b':b.type==='swift'?'#667a8e':'#555a66';ctx.beginPath();ctx.moveTo(12,4);ctx.lineTo(28,12);ctx.lineTo(25,-7);ctx.closePath();ctx.fill();
+line(-6,12,-8,20,'#b78560',2);line(5,12,7,20,'#b78560',2);
+ellipse(0,0,21,15,b.type==='raven'?'#555064':b.type==='swift'?'#697d8e':'#5d6572');ellipse(-12,-7,13,11,'#707683');
+ctx.save();ctx.translate(4,2);ctx.rotate(Math.sin(b.wing)*.55-.15);ellipse(3,4,15,6,b.type==='raven'?'#403e50':'#444a59');ctx.restore();
+ctx.fillStyle='#dfaa64';ctx.beginPath();ctx.moveTo(-19,-5);ctx.lineTo(-29,-1);ctx.lineTo(-19,3);ctx.fill();ellipse(-15,-10,3.4,3.4,'#fff9eb');ellipse(-16,-10,1.7,2,'#383b42');
+ctx.restore();if(b.hp<b.maxhp){rr(x-18,y-27,36,5,3,'#715d51');rr(x-18,y-27,36*clamp(b.hp/b.maxhp,0,1),5,3,'#ffe6a5')}}
+function draw(){ctx.clearRect(0,0,W,H);bg();
+// Subtle road dust and marching trail at the right margin.
+for(let i=0;i<4;i++){let y=cellCenter(i,4).y;ellipse(405,y,7,17,'#f2e1ba66')}
+for(let s of scare)scarecrow(s);
+for(let b of birds)bird(b);
+for(let s of shots){ellipse(s.x,s.y,5+s.level*.45,4+s.level*.45,'#fff2a0');ellipse(s.x-1,s.y-1,2,2,'#fffdf0')}
+for(let p of particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);ellipse(p.x,p.y,p.size,p.size,p.color)}ctx.globalAlpha=1;
+for(let f of floating){ctx.globalAlpha=clamp(f.t,0,1);ctx.font='900 15px Trebuchet MS';ctx.textAlign='center';ctx.fillStyle='#fff9e7';ctx.fillText(f.text,f.x+1,f.y+1);ctx.fillStyle=f.color;ctx.fillText(f.text,f.x,f.y)}ctx.globalAlpha=1;
+if(rest>0){ctx.fillStyle='#fff6deea';rr(97,12,226,42,15,'#fff6deea');ctx.fillStyle='#79553e';ctx.textAlign='center';ctx.font='bold 17px Trebuchet MS';ctx.fillText('🌻 Next wave in '+Math.ceil(rest)+'…',210,39)}
+if(paused){ctx.fillStyle='#473b3266';ctx.fillRect(0,0,W,H)}
+}
+function loop(t){if(!last)last=t;const dt=clamp((t-last)/1000,0,.05);last=t;if(playing&&!paused)update(dt);else if(toastTime>0){toastTime-=dt;if(toastTime<=0)$('toast').classList.remove('show')}draw();requestAnimationFrame(loop)}
+// Decorative preview of the game before the first play.
+for(let i=0;i<30;i++)flowers.push({x:rand(0,420),y:rand(110,495),a:rand(0,7),s:rand(.6,1.4)});
+scare.push({r:1,c:1,level:1,cool:0,bop:0},{r:2,c:2,level:2,cool:0,bop:0},{r:0,c:0,level:1,cool:0,bop:0});birds.push({r:1,x:338,y:cellCenter(1,4).y,hp:9,maxhp:9,speed:0,type:'crow',wobble:0,wing:0});
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
